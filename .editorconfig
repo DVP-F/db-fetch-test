@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# SYSLIB1045: Convert to 'GeneratedRegexAttribute'.
+dotnet_diagnostic.SYSLIB1045.severity = suggestion
+
+# RE0001: Invalid regex pattern
+dotnet_diagnostic.RE0001.severity = suggestion
