@@ -1,0 +1,30 @@
+[{
+  "_id": {
+    "$oid": "67c8cc75278793e156f11382"
+  },
+  "name": "Local Goth Girl",
+  "lore": "Your Local (or not) Goth Girl.",
+  "alignments": "secret",
+  "chance": 0.00002,
+  "class": "secret"
+},
+{
+  "_id": {
+    "$oid": "67c8ceb5278793e156f11383"
+  },
+  "name": "Khorne",
+  "lore": "Chaos god of blood and skulls.",
+  "alignments": "war",
+  "chance": 0.01,
+  "class": "chaos"
+},
+{
+  "_id": {
+    "$oid": "67c8ceb5278793e156f11384"
+  },
+  "name": "Slaanesh",
+  "lore": "Chaos god of sensation, both pleasant and not.",
+  "alignments": "life",
+  "chance": 0.01,
+  "class": "chaos"
+}]
