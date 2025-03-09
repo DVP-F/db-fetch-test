@@ -12,10 +12,20 @@ using System.Text.RegularExpressions;  // Needed for Regex
 
 namespace WpfMongoJsonApp
 {
-	public partial class MainWindow : Window
+    public class Record
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Lore { get; set; }
+        public string Alignments { get; set; }
+        public double Chance { get; set; }
+        public string Class { get; set; }
+    }
+
+    public partial class MainWindow : Window
 	{
-		public ObservableCollection<ExpandoObject> Records { get; set; } = new ObservableCollection<ExpandoObject>();
-		private readonly string jsonFilePath = "C:\\path\\to\\yourfile.json"; // Adjust the file path
+        public ObservableCollection<Record> Records { get; set; } = new ObservableCollection<Record>();
+        private readonly string jsonFilePath = "C:\\path\\to\\yourfile.json"; // Adjust the file path
 		private IMongoCollection<BsonDocument> mongoCollection; // MongoDB collection variable
 
 		public MainWindow()
@@ -31,23 +41,27 @@ namespace WpfMongoJsonApp
 
 		private void LoadFromMongoDB()
 		{
-            try
-            {
-                // Check if DB path is valid
-                if (Regex.IsMatch(txtDBPath.Text, "@(?:[\\d+\\.]+|localhost)\\:\\d+") && !string.IsNullOrEmpty(txtDBPath.Text)) // Check if the path is valid 
-                {
-					var client = new MongoClient("mongodb://" + txtDBPath.Text);
-					if (txtDBName.Text != "Database" && !string.IsNullOrEmpty(txtDBName.Text) && txtDBColl.Text != "Collection" && !string.IsNullOrEmpty(txtDBColl.Text))
-					{
-						var database = client.GetDatabase(txtDBName.Text);
-						mongoCollection = database.GetCollection<BsonDocument>(txtDBColl.Text); // Set collection dynamically based on input
-					}
-					else
-					{
-						MessageBox.Show("Database and collection name are required.", "MongoDB Database", MessageBoxButton.OK, MessageBoxImage.Information);
-						return;
-					}
-				}
+			try
+			{
+				// Check if DB path is valid
+				if (Regex.IsMatch(txtDBPath.Text, "@(?:[\\d+\\.]+|localhost)\\:\\d+") && !string.IsNullOrEmpty(txtDBPath.Text)) // Check if the path is valid 
+				{
+                    var records = mongoCollection.Find(new BsonDocument()).ToList();
+                    Records.Clear();
+
+                    foreach (var record in records)
+                    {
+                        Records.Add(new Record
+                        {
+                            Id = record["_id"].ToString(),
+                            Name = record.GetValue("name", "").ToString(),
+                            Lore = record.GetValue("lore", "").ToString(),
+                            Alignments = record.GetValue("alignments", "").ToString(),
+                            Chance = record.GetValue("chance", 0).ToDouble(),
+                            Class = record.GetValue("class", "").ToString()
+                        });
+                    }
+                }
 
 			// Ensure mongoCollection is initialized
 				if (mongoCollection != null)
@@ -57,12 +71,15 @@ namespace WpfMongoJsonApp
 					Records.Clear();
 					foreach (var record in records)
 					{
-						dynamic expando = new ExpandoObject();
+						dynamic obj = new ExpandoObject();
+						var dict = (IDictionary<string, object>)obj;
+
 						foreach (var element in record.Elements)
 						{
-							((IDictionary<string, object>)expando)[element.Name] = BsonTypeMapper.MapToDotNetValue(element.Value);
+							dict[element.Name] = BsonTypeMapper.MapToDotNetValue(element.Value);
 						}
-						Records.Add(expando);  // Add the record to the ObservableCollection
+
+						Records.Add(obj); // Add the record to the ObservableCollection
 					}
 				}
 				else
@@ -81,26 +98,15 @@ namespace WpfMongoJsonApp
 			// Check if the JSON file exists
 			if (File.Exists(jsonFilePath))
 			{
-				string json = File.ReadAllText(jsonFilePath); // Read JSON file
-				var jsonArray = JsonNode.Parse(json)?.AsArray();
-				Records.Clear();
+                string json = File.ReadAllText(jsonFilePath);
+                var records = JsonSerializer.Deserialize<List<Record>>(json);
 
-				if (jsonArray != null)
-				{
-					foreach (var jsonObj in jsonArray)
-					{
-						dynamic expando = new ExpandoObject();
-						if (jsonObj is JsonObject obj)
-						{
-							foreach (var kvp in obj)
-							{
-								((IDictionary<string, object>)expando)[kvp.Key] = kvp.Value?.ToString();
-							}
-						}
-						Records.Add(expando);
-					}
-				}
-			}
+                Records.Clear();
+                foreach (var record in records)
+                {
+                    Records.Add(record);
+                }
+            }
 			else
 			{
 				MessageBox.Show("JSON file not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
