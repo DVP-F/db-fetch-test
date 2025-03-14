@@ -1,7 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Json;
+using System.Text.Json;			// Guess what? We need this for JSON
 using System.Windows;
+using System.Diagnostics;		// For Debugging, dipshit. 
 using System.Windows.Controls;  // For DataGrid, DataGridAutoGeneratingColumnEventArgs, DataGridTextColumn, ToolTip 
 using System.Windows.Data;      // For Binding
 using MongoDB.Bson;
@@ -12,7 +13,7 @@ namespace WpfMongoJsonApp
 {
 	public class Record
 	{
-		public string? Id { get; set; }  // Nullable to avoid warnings
+		public string? Id { get; set; }  // Nullable to avoid warnings -- although this shouldnt be null at any point
 		public string? Name { get; set; }
 		public string? Lore { get; set; }
 		public string? Alignments { get; set; }
@@ -23,7 +24,7 @@ namespace WpfMongoJsonApp
 	public partial class MainWindow : Window
 	{
 		public ObservableCollection<Record> Records { get; set; } = new ObservableCollection<Record>();
-		private readonly string jsonFilePath = "C:\\path\\to\\yourfile.json"; // Adjust the file path
+		private string? jsonFilePath;
 		private IMongoCollection<BsonDocument> mongoCollection; // MongoDB collection variable
 
 		private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -50,7 +51,7 @@ namespace WpfMongoJsonApp
 			// Initialize MongoDB client and collection (default for now)
 			var client = new MongoClient("mongodb://localhost:27017");
 			var database = client.GetDatabase("qb");
-			mongoCollection = database.GetCollection<BsonDocument>("deity"); // Default collection (adjust as needed)
+			mongoCollection = database.GetCollection<BsonDocument>("deity"); 
 		}
 
 		private void showBtnCls()
@@ -77,12 +78,18 @@ namespace WpfMongoJsonApp
 			Griddy.Loaded += SetMinWidths;
 		}
 
-		private void LoadFromMongoDB()
+		private void InactivateView()
+		{
+			// Display a gray-out effect on the window, set cursor to throbber, and set window to inactive 
+		}
+
+		private async Task LoadFromMongoDB()
 		{
 			try
 			{
-				if (Regex.IsMatch(txtDBPath.Text, "@(?:[\\d+\\.]+|localhost)\\:\\d+") && !string.IsNullOrEmpty(txtDBPath.Text))
+				if (Regex.IsMatch(txtDBPath.Text, @"^(?:localhost|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$") && !string.IsNullOrEmpty(txtDBPath.Text))
 				{
+					Debug.WriteLine("mongodb path is valid: match = " + Regex.Match(txtDBPath.Text, @"^(?:[\d\.]+|localhost):\d+$"));
 					var client = new MongoClient("mongodb://" + txtDBPath.Text);
 					if (!string.IsNullOrEmpty(txtDBName.Text) && txtDBName.Text != "Database" &&
 						!string.IsNullOrEmpty(txtDBColl.Text) && txtDBColl.Text != "Collection")
@@ -103,7 +110,7 @@ namespace WpfMongoJsonApp
 					return;
 				}
 
-				var records = mongoCollection.Find(new BsonDocument()).ToList();
+				var records = await mongoCollection.Find(new BsonDocument()).ToListAsync();
 				Records.Clear();
 
 				foreach (var bsonDoc in records)
@@ -114,12 +121,16 @@ namespace WpfMongoJsonApp
 						Name = bsonDoc.Contains("name") ? bsonDoc["name"].ToString() : "Unknown",
 						Lore = bsonDoc.Contains("lore") ? bsonDoc["lore"].ToString() : "Unknown",
 						Alignments = bsonDoc.Contains("alignments") ? bsonDoc["alignments"].ToString() : "None",
-						Chance = bsonDoc.Contains("chance") ? (double?)bsonDoc["chance"].ToDouble() : null,  // FIX HERE
+						Chance = bsonDoc.Contains("chance") ? (double?)bsonDoc["chance"].ToDouble() : null,
 						Class = bsonDoc.Contains("class") ? bsonDoc["class"].ToString() : "Unknown"
 					};
 
 					Records.Add(newRecord);
 				}
+			}
+			catch (MongoConnectionException ex)
+			{
+				MessageBox.Show($"Error connecting to MongoDB: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 			catch (Exception ex)
 			{
@@ -131,21 +142,42 @@ namespace WpfMongoJsonApp
 
 		private void LoadFromJson()
 		{
-			// Check if the JSON file exists
-			if (File.Exists(jsonFilePath))
+			try
 			{
-				string json = File.ReadAllText(jsonFilePath);
-				var records = JsonSerializer.Deserialize<List<Record>>(json);
-
-				Records.Clear();
-				foreach (var record in records)
+				if (string.IsNullOrEmpty(txtJSONPath.Text))
 				{
-					Records.Add(record);
+					MessageBox.Show("JSON file path is required.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+					return;
+				}
+				else
+				{
+					jsonFilePath = txtJSONPath.Text.Replace(@"\", @"\\");
+				}
+
+				
+				if (File.Exists(jsonFilePath))  // Check if the JSON file exists
+				{
+					string json = File.ReadAllText(jsonFilePath);
+					var records = JsonSerializer.Deserialize<List<Record>>(json);
+
+					Records.Clear();
+					foreach (var record in records)
+					{
+						Records.Add(record);
+					}
+				}
+				else
+				{
+					MessageBox.Show("JSON file not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				}
 			}
-			else
+			catch (FileNotFoundException ex)
 			{
-				MessageBox.Show("JSON file not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show($"Error: FileNotFound: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Error loading from JSON: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 
 			showBtnCls();
@@ -158,9 +190,9 @@ namespace WpfMongoJsonApp
 		}
 
 		// Load MongoDB data when button is clicked
-		private void Button_LoadMongo_Click(object sender, RoutedEventArgs e)
+			private async void Button_LoadMongo_Click(object sender, RoutedEventArgs e)
 		{
-			LoadFromMongoDB();
+			await LoadFromMongoDB();
 		}
 
 		// Load JSON data when button is clicked

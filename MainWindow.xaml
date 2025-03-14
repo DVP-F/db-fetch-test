@@ -17,22 +17,22 @@
 
 		<StackPanel Margin="10" Grid.ColumnSpan="3" ScrollViewer.VerticalScrollBarVisibility="Auto">
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
-				<StackPanel Margin="0,0,5,0">
+				<StackPanel Margin="0,0,5,0" MinWidth="40">
 					<TextBox x:Name="txtDBPath" TextWrapping="Wrap" Text="MongoDB IP (opt.)" Margin="-2,-1,0,1"/>
 					<TextBox x:Name="txtDBName" TextWrapping="Wrap" Text="Database" Margin="-2,-1,0,1"/>
 					<TextBox x:Name="txtDBColl" TextWrapping="Wrap" Text="Collection" Margin="-2,-1,0,1"/>
 				</StackPanel>
-                <Button Content="Load from MongoDB" Click="Button_LoadMongo_Click" Width="120" Margin="5">
-                    <Button.ToolTip>
-                        Load data from MongoDB, either from the default localhost or from the IP address specified.
-                    </Button.ToolTip>
-                </Button>
-                <Button Content="Load from JSON" Click="Button_LoadJson_Click" Width="120" Margin="5">
-                    <Button.ToolTip>
-                        Load data from a JSON file, either from the default path or from the path specified.
-                    </Button.ToolTip>
-                </Button>
-                <StackPanel Margin="0,5,0,0">
+				<Button Content="Load from MongoDB" Click="Button_LoadMongo_Click" Width="120" Margin="5">
+					<Button.ToolTip>
+						Load data from MongoDB, either from the default localhost:27017 or from a specified IP address.
+					</Button.ToolTip>
+				</Button>
+				<Button Content="Load from JSON" Click="Button_LoadJson_Click" Width="120" Margin="5">
+					<Button.ToolTip>
+						Load data from a JSON file at the specified path.
+					</Button.ToolTip>
+				</Button>
+				<StackPanel Margin="0,5,0,0" MinWidth="40">
 					<TextBox x:Name="txtJSONPath" TextWrapping="Wrap" Height="20" Text="JSON filepath (opt.)" TextAlignment="Center" Margin="0,1,0,0"/>
 					<Button x:Name="btnCls" Content="CLEAR LOADED" Margin="0,2,0,0" Visibility="Collapsed" Click="Button_CLS_Click">
 						<Button.ToolTip>

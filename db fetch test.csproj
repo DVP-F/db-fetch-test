@@ -7,10 +7,35 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>MongoDB Fetcher</AssemblyName>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <NeutralLanguage>en-150</NeutralLanguage>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/DVP-F/db-fetch-test</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/DVP-F/db-fetch-test</PackageProjectUrl>
+    <Copyright>Made by DVP-F/Carnx of the DVPDEVS team and Queen of the Lmaos team</Copyright>
+    <Company>DVPDEVS</Company>
+    <Authors>DVP-F</Authors>
+    <Title>MongoDb Fetcher</Title>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <SignAssembly>False</SignAssembly>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PackageId>MongoDBFetcher</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="3.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
