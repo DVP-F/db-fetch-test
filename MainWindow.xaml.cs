@@ -102,9 +102,9 @@ namespace WpfMongoJsonApp
 
         private async Task LoadFromMongoDB()
 		{
+			InactivateView();
 			try
 			{
-				InactivateView();
                 if (Regex.IsMatch(txtDBPath.Text, @"^(?:localhost|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$") && !string.IsNullOrEmpty(txtDBPath.Text))
 				{
 					Debug.WriteLine("mongodb path is valid: match = " + Regex.Match(txtDBPath.Text, @"^(?:[\d\.]+|localhost):\d+$"));
@@ -123,7 +123,7 @@ namespace WpfMongoJsonApp
 					}
 				}
 
-				if (mongoCollection == null)
+                if (mongoCollection == null)
 				{
 					MessageBox.Show("MongoDB collection is not initialized.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     ReactivateView();
@@ -148,7 +148,12 @@ namespace WpfMongoJsonApp
 					Records.Add(newRecord);
 				}
 			}
-			catch (MongoConnectionException ex)
+			catch (System.Net.Sockets.SocketException ex)
+			{
+				MessageBox.Show($"Connection Error: {ex.Message}\n\nPlease check connection properties.", "SocketException", MessageBoxButton.OK, MessageBoxImage.Error);
+				ReactivateView();
+			}
+            catch (MongoConnectionException ex)
 			{
 				MessageBox.Show($"Error connecting to MongoDB: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 ReactivateView();
@@ -213,19 +218,16 @@ namespace WpfMongoJsonApp
             ReactivateView();
         }
 
-		// Clear the DataGrid when button is clicked and then hide said button
 		private void Button_CLS_Click(object sender, RoutedEventArgs e)
 		{
 			ClearDataGrid();
 		}
 
-		// Load MongoDB data when button is clicked
 			private async void Button_LoadMongo_Click(object sender, RoutedEventArgs e)
 		{
 			await LoadFromMongoDB();
 		}
 
-		// Load JSON data when button is clicked
 		private void Button_LoadJson_Click(object sender, RoutedEventArgs e)
 		{
 			LoadFromJson();

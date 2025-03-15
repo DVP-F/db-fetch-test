@@ -14,22 +14,37 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-
 		<StackPanel Margin="10" Grid.ColumnSpan="3" ScrollViewer.VerticalScrollBarVisibility="Auto">
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
 				<StackPanel Margin="0,0,5,0" MinWidth="40">
-					<TextBox x:Name="txtDBPath" TextWrapping="Wrap" Text="MongoDB IP (opt.)" Margin="-2,-1,0,1"/>
-					<TextBox x:Name="txtDBName" TextWrapping="Wrap" Text="Database" Margin="-2,-1,0,1"/>
-					<TextBox x:Name="txtDBColl" TextWrapping="Wrap" Text="Collection" Margin="-2,-1,0,1"/>
+					<TextBox x:Name="txtDBPath" TextWrapping="Wrap" Text="MongoDB IP (opt.)" Margin="-2,-1,0,1">
+						<TextBox.ToolTip>
+							<TextBlock>
+							The IP address of the MongoDB server to connect to. Defaults to 'localhost' if blank or unedited. Port 27017 is assumed.
+							<LineBreak /> 
+							BE EXTREMELY CAREFUL - A faulty IP address can cause the app to hang indefinitely.
+							</TextBlock>
+						</TextBox.ToolTip>
+					</TextBox>
+					<TextBox x:Name="txtDBName" TextWrapping="Wrap" Text="Database" Margin="-2,-1,0,1">
+						<TextBox.ToolTip>
+							The name of the Database to connect to. Defaults to 'qb' if blank or unedited.
+						</TextBox.ToolTip>
+					</TextBox>
+					<TextBox x:Name="txtDBColl" TextWrapping="Wrap" Text="Collection" Margin="-2,-1,0,1">
+						<TextBox.ToolTip>
+							The name of the Collection to connect to. Defaults to 'deity' if blank or unedited.
+						</TextBox.ToolTip>
+					</TextBox>
 				</StackPanel>
 				<Button Content="Load from MongoDB" Click="Button_LoadMongo_Click" Width="120" Margin="5">
 					<Button.ToolTip>
-						Load data from MongoDB, either from the default localhost:27017 or from a specified IP address.
+						Load data from a MongoDB server, either from the default localhost:27017 or from a specified source to the left.
 					</Button.ToolTip>
 				</Button>
 				<Button Content="Load from JSON" Click="Button_LoadJson_Click" Width="120" Margin="5">
 					<Button.ToolTip>
-						Load data from a JSON file at the specified path.
+						Load data from a JSON file at the specified path to the right
 					</Button.ToolTip>
 				</Button>
 				<StackPanel Margin="0,5,0,0" MinWidth="40">
@@ -41,7 +56,6 @@
 					</Button>
 				</StackPanel>
 			</StackPanel>
-
 			<DataGrid ItemsSource="{Binding Records}" 
 				MinWidth="480"
 				AutoGenerateColumns="True" 
