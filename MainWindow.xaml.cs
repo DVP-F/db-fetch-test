@@ -105,7 +105,7 @@ namespace WpfMongoJsonApp
 			InactivateView();
 			try
 			{
-                if (Regex.IsMatch(txtDBPath.Text, @"^(?:localhost|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$") && !string.IsNullOrEmpty(txtDBPath.Text))
+				if (Regex.IsMatch(txtDBPath.Text, @"^(?:localhost|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$") && !string.IsNullOrEmpty(txtDBPath.Text))
 				{
 					Debug.WriteLine("mongodb path is valid: match = " + Regex.Match(txtDBPath.Text, @"^(?:[\d\.]+|localhost):\d+$"));
 					var client = new MongoClient("mongodb://" + txtDBPath.Text);
@@ -117,11 +117,17 @@ namespace WpfMongoJsonApp
 					}
 					else
 					{
-                        MessageBox.Show("Database and collection name are required.", "MongoDB Error", MessageBoxButton.OK, MessageBoxImage.Information);
+						MessageBox.Show("Database and collection name are required.", "MongoDB Error", MessageBoxButton.OK, MessageBoxImage.Information);
 						ReactivateView();
 						return;
 					}
 				}
+				else if (string.IsNullOrEmpty(txtDBPath.Text))
+				{
+                    var client = new MongoClient("mongodb://localhost:27017");
+                    var database = client.GetDatabase("qb");
+                    mongoCollection = database.GetCollection<BsonDocument>("deity");
+                }
 
                 if (mongoCollection == null)
 				{
