@@ -5,6 +5,7 @@ using System.Windows;
 using System.Diagnostics;		// For Debugging, dipshit. 
 using System.Windows.Controls;  // For DataGrid, DataGridAutoGeneratingColumnEventArgs, DataGridTextColumn, ToolTip 
 using System.Windows.Data;      // For Binding
+using System.Windows.Input;     // For Cursors, ofc 
 using MongoDB.Bson;
 using MongoDB.Driver;           // Both needed for MongoDB 
 using System.Text.RegularExpressions;  // Needed for Regex
@@ -78,16 +79,33 @@ namespace WpfMongoJsonApp
 			Griddy.Loaded += SetMinWidths;
 		}
 
-		private void InactivateView()
-		{
-			// Display a gray-out effect on the window, set cursor to throbber, and set window to inactive 
-		}
 
-		private async Task LoadFromMongoDB()
+        private void InactivateView()
+        {
+            // Display a gray-out effect on the window, set cursor to throbber, and set window to inactive 
+            GreyoutGrid.Visibility = Visibility.Visible;
+            Application.Current.MainWindow.ResizeMode = ResizeMode.NoResize;
+			Application.Current.MainWindow.IsEnabled = false;
+			Application.Current.MainWindow.Cursor = Cursors.Wait; 
+			Application.Current.MainWindow.WindowStyle = WindowStyle.None;
+        }
+
+        private void ReactivateView()
+        {
+            // Hide the gray-out effect, set cursor back to arrow, and set window to active
+            GreyoutGrid.Visibility = Visibility.Hidden;
+            Application.Current.MainWindow.ResizeMode = ResizeMode.CanResize;
+            Application.Current.MainWindow.IsEnabled = true;
+            Application.Current.MainWindow.Cursor = Cursors.Arrow;
+            Application.Current.MainWindow.WindowStyle = WindowStyle.SingleBorderWindow;
+        }
+
+        private async Task LoadFromMongoDB()
 		{
 			try
 			{
-				if (Regex.IsMatch(txtDBPath.Text, @"^(?:localhost|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$") && !string.IsNullOrEmpty(txtDBPath.Text))
+				InactivateView();
+                if (Regex.IsMatch(txtDBPath.Text, @"^(?:localhost|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$") && !string.IsNullOrEmpty(txtDBPath.Text))
 				{
 					Debug.WriteLine("mongodb path is valid: match = " + Regex.Match(txtDBPath.Text, @"^(?:[\d\.]+|localhost):\d+$"));
 					var client = new MongoClient("mongodb://" + txtDBPath.Text);
@@ -99,7 +117,8 @@ namespace WpfMongoJsonApp
 					}
 					else
 					{
-						MessageBox.Show("Database and collection name are required.", "MongoDB Error", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Database and collection name are required.", "MongoDB Error", MessageBoxButton.OK, MessageBoxImage.Information);
+						ReactivateView();
 						return;
 					}
 				}
@@ -107,7 +126,8 @@ namespace WpfMongoJsonApp
 				if (mongoCollection == null)
 				{
 					MessageBox.Show("MongoDB collection is not initialized.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-					return;
+                    ReactivateView();
+                    return;
 				}
 
 				var records = await mongoCollection.Find(new BsonDocument()).ToListAsync();
@@ -131,23 +151,28 @@ namespace WpfMongoJsonApp
 			catch (MongoConnectionException ex)
 			{
 				MessageBox.Show($"Error connecting to MongoDB: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
+                ReactivateView();
+            }
 			catch (Exception ex)
 			{
 				MessageBox.Show($"Error loading from MongoDB: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
+                ReactivateView();
+            }
 
 			showBtnCls();
-		}
+            ReactivateView();
+        }
 
 		private void LoadFromJson()
 		{
 			try
 			{
-				if (string.IsNullOrEmpty(txtJSONPath.Text))
+                InactivateView();
+                if (string.IsNullOrEmpty(txtJSONPath.Text))
 				{
 					MessageBox.Show("JSON file path is required.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-					return;
+                    ReactivateView();
+                    return;
 				}
 				else
 				{
@@ -169,19 +194,24 @@ namespace WpfMongoJsonApp
 				else
 				{
 					MessageBox.Show("JSON file not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-				}
+                    ReactivateView();
+					return;
+                }
 			}
 			catch (FileNotFoundException ex)
 			{
 				MessageBox.Show($"Error: FileNotFound: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
+                ReactivateView();
+            }
 			catch (Exception ex)
 			{
 				MessageBox.Show($"Error loading from JSON: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
+                ReactivateView();
+            }
 
 			showBtnCls();
-		}
+            ReactivateView();
+        }
 
 		// Clear the DataGrid when button is clicked and then hide said button
 		private void Button_CLS_Click(object sender, RoutedEventArgs e)

@@ -55,5 +55,15 @@
 				Grid.Row="1"
 				Name="Griddy"/>
 		</StackPanel>
+		<Grid Grid.RowSpan="2" Cursor="Wait" Background="#662F2F2F" 
+				Visibility="Hidden" Name="GreyoutGrid" HorizontalAlignment="Stretch"
+				VerticalAlignment="Stretch">
+			<Grid.Effect>
+				<BlurEffect/>
+			</Grid.Effect>
+			<Grid.ToolTip>
+				Please wait for the app to load...
+			</Grid.ToolTip>
+		</Grid>
 	</Grid>
 </Window>
